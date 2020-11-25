@@ -1,0 +1,7 @@
+[submodule "themes/etch"]
+	path = themes/etch
+	url = https://github.com/LukasJoswiak/etch.git
+[submodule "public"]
+	path = public
+	url = https://github.com/vlukiyanov/vlukiyanov.github.io.git
+	branch = main
