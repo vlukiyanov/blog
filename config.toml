@@ -12,6 +12,9 @@ copyright = "Copyright © 2020 Vladimir Lukiyanov"
 dark = "auto"
 highlight = true
 
+[author]
+  name = "Vladimir Lukiyanov"
+
 [menu]
     [[menu.main]]
     identifier = "posts"

@@ -2,6 +2,7 @@
 author = "Vladimir Lukiyanov"
 title = "Exploring Redis streams with Akka streams"
 date = "2020-11-27"
+lastmod = "2020-12-01"
 description = "A short introduction to consuming and producing messages to Redis streams using Akka streams"
 tags = [
     "akka", "redis", "streams", "scala", "exploration"
