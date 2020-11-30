@@ -1,35 +1,49 @@
 baseURL = "https://vlukiyanov.github.io"
-title = "Website Name"
+title = "Vladimir Lukiyanov"
 theme = "etch"
-languageCode = "en-US"
+languageCode = "en-GB"
 enableInlineShortcodes = true
 pygmentsCodeFences = true
 pygmentsUseClasses = true
 
 [params]
-description = "Your site description"
-copyright = "Copyright © 2020 Your Name"
+description = "Vladimir Lukiyanov"
+copyright = "Copyright © 2020 Vladimir Lukiyanov"
 dark = "auto"
 highlight = true
 
 [menu]
-[[menu.main]]
-identifier = "posts"
-name = "posts"
-title = "posts"
-url = "/"
-weight = 10
+    [[menu.main]]
+    identifier = "posts"
+    name = "posts"
+    title = "posts"
+    url = "/"
+    weight = 10
 
-[[menu.main]]
-identifier = "about"
-name = "about"
-title = "about"
-url = "/about/"
-weight = 20
+    [[menu.main]]
+    identifier = "about"
+    name = "about"
+    title = "about"
+    url = "/about/"
+    weight = 20
 
 [permalinks]
 posts = "/:title/"
 
 [markup.goldmark.renderer]
-# Allows HTML in Markdown
-unsafe = true
+    # Allows HTML in Markdown
+    unsafe = true
+
+[markup]
+    [markup.highlight]
+        anchorLineNos = false
+        codeFences = true
+        guessSyntax = false
+        hl_Lines = ""
+        lineAnchors = ""
+        lineNoStart = 1
+        lineNos = false
+        lineNumbersInTable = true
+        noClasses = true
+        style = "monokai"
+        tabWidth = 4
