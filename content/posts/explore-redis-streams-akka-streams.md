@@ -137,7 +137,9 @@ We're now able to create a full example which simultaneously produces and consum
 
 ```scala
 val redisStreamsFlow = RedisStreamsFlow.create(asyncCommands, "testStream")
-val messageSource = Source.repeat(Map("key" -> "test")).limit(10_000_000)
+val messageSource = Source
+   .repeat(Map("key" -> "test"))
+   .limit(10_000_000)
 
 messageSource
   .via(redisStreamsFlow)
@@ -148,7 +150,7 @@ messageSource
   .run()
 ```
 
-Then we can take the same stream and consume the produces message, acknowledging them as we go along:
+Then we can take the same stream and consume the produced message, acknowledging them as we go along:
 
 ```scala
 val redisStreamsSource = RedisStreamsSource.create(asyncCommands,
