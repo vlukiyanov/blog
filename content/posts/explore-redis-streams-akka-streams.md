@@ -174,5 +174,5 @@ The code for this is in [`AckExample.scala`](https://github.com/vlukiyanov/akka-
 4) (nil)
 ```
 
-This means that the code has successfully finished, and we have the example app; hopefully this can be used as a springboard to exploring other features in Redis stream using Akka streams, and possibly application for this in-memory log data structure.
+This means that the code has successfully finished, and we have the example app; hopefully this can be used as a springboard to exploring other features in Redis streams using Akka streams, and possibly application for this in-memory log data structure.
 
