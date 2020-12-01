@@ -31,7 +31,7 @@ graph LR;
 {{< /mermaid >}}
 {{</center>}}
 
-We will optimise this app for throughput to imitate multiple simultaneous consumers, in particular using parallelism with `.mapAsync(4)`. Note that the optimisations are unlikely to transfer equally to all environments, this is simply to saturate Redis throughput in a single app.
+We will optimise this app for throughput to imitate multiple simultaneous consumers and producers, in particular using parallelism with `.mapAsync(4)` to saturate Redis. Note that the optimisations are unlikely to transfer equally to all environments, this is simply to optimise throughput in a single app.
 
 Using Redis streams with Akka streams is possible using one of the Redis client libraries for Java in Scala, in particular [Redisson](https://github.com/redisson/redisson) and [Lettuce](https://github.com/lettuce-io/lettuce-core); in the following examples we use the simple async version of the latter. Note that Lettuce also has a [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) using [Project Reactor](http://projectreactor.io/), this interface can be used within Akka Streams via the [reactive streams interop](https://doc.akka.io/docs/akka/current/stream/reactive-streams-interop.html) and might be suitable for a number of actual production applications and environments.
 
