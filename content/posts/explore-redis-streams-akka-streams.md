@@ -114,7 +114,7 @@ The parameters here need tuning, but this will poll Redis at some fixed interval
 
 # Acknowledging messages
 
-When a consumer in a consumer group has successfully processed a message it should indicate this by sending an [XACK](https://redis.io/commands/xack); sending [XACK](https://redis.io/commands/xack) removes the message from the pending list. As a message is uniquely determined by a string id, this process can be modelled as `Sink[String, NotUsed]`, and in implementation is something like the following:
+When a consumer in a consumer group has successfully processed a message it should indicate this by sending an [XACK](https://redis.io/commands/xack); sending [XACK](https://redis.io/commands/xack) removes the message from the pending list. As a message is uniquely determined by a string id this process can be modelled as `Sink[String, NotUsed]`. An implementation is something like the following:
 
 ```scala
 object RedisStreamsAckSink {
@@ -174,5 +174,5 @@ The code for this is in [`AckExample.scala`](https://github.com/vlukiyanov/akka-
 4) (nil)
 ```
 
-This means that the code has successfully finished, and we have the example app; hopefully this can be used as a springboard to exploring other features in Redis streams using Akka streams, and possibly application for this in-memory log data structure.
+This means that the code has successfully finished, and we have the example app; hopefully this can be used as a springboard to exploring other features in Redis streams using Akka streams, and possibly applications for this in-memory log data structure.
 
