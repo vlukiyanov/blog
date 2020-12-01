@@ -31,9 +31,9 @@ graph LR;
 {{< /mermaid >}}
 {{</center>}}
 
-We will optimise this app for throughput, but note that the optimisations are unlikely to transfer equally to all environments.
+We will optimise this app for throughput to imitate multiple simultaneous consumers, in particular using parallelism with `.mapAsync(4)`. Note that the optimisations are unlikely to transfer equally to all environments, this is simply to saturate Redis throughput in a single app.
 
-Using Redis streams with Akka streams is possible using one of the Redis client libraries for Java in Scala, in particular [Redisson](https://github.com/redisson/redisson) and [Lettuce](https://github.com/lettuce-io/lettuce-core); in the following examples we use the simple async version of the latter. Note that Lettuce also has a [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) using [Project Reactor](http://projectreactor.io/), this interface can be used within Akka Streams via the [reactive streams interop](https://doc.akka.io/docs/akka/current/stream/reactive-streams-interop.html) and might be suitable for a number of applications and environments.
+Using Redis streams with Akka streams is possible using one of the Redis client libraries for Java in Scala, in particular [Redisson](https://github.com/redisson/redisson) and [Lettuce](https://github.com/lettuce-io/lettuce-core); in the following examples we use the simple async version of the latter. Note that Lettuce also has a [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) using [Project Reactor](http://projectreactor.io/), this interface can be used within Akka Streams via the [reactive streams interop](https://doc.akka.io/docs/akka/current/stream/reactive-streams-interop.html) and might be suitable for a number of actual production applications and environments.
 
 # Setting up
 
@@ -79,7 +79,7 @@ object RedisStreamsFlow {
 }
 ```
 
-In the above `redis.setAutoFlushCommands(false)` disables Lettuce's automatic flushing, as discussed in [Lettuce documentation](https://lettuce.io/core/release/reference/#_pipelining_and_command_flushing), and instead pipelines the commands manually. This periodically invokes writing to the transport layer using `redis.flushCommands()` after many commands have been added - increasing throughput. On my local system setting parallelism to 4 increased throughput to a maximum, given Redis is single threaded this is something to note, though may not be relevant in actual production scenarios.
+In the above `redis.setAutoFlushCommands(false)` disables Lettuce's automatic flushing, as discussed in [Lettuce documentation](https://lettuce.io/core/release/reference/#_pipelining_and_command_flushing), and instead pipelines the commands manually. This periodically invokes writing to the transport layer using `redis.flushCommands()` after many commands have been added - increasing throughput. 
 
 The code for this is in [`RedisStreamsFlow.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsFlow.scala) and [`ProducerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ProducerExample.scala).
 
@@ -110,7 +110,7 @@ object RedisStreamsSource {
 }
 ```
 
-The parameters here need tuning, but this will poll Redis at some fixed interval, then flatten the lists of messages using `.mapConcat(_.asScala.toList)`. On my local system setting parallelism to 4 increased throughput to a maximum, given Redis is single threaded this is again something to note, though may not be relevant in actual production scenarios. The code for this is in [`RedisStreamsSource.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsSource.scala) and [`ConsumerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ConsumerExample.scala).
+The parameters here need tuning, but this will poll Redis at some fixed interval, then flatten the lists of messages using `.mapConcat(_.asScala.toList)`. The code for this is in [`RedisStreamsSource.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsSource.scala) and [`ConsumerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ConsumerExample.scala).
 
 # Acknowledging messages
 
