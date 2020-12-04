@@ -9,13 +9,15 @@ tags = [
 ]
 +++
 
-In this post we will explore using Redis streams in Akka streams using the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core); Redis is an in-memory database used in distributed systems, and Akka streams is a popular reactive streams implementation for Scala. The streams data structure in Redis implements a persistent log with support for consumer groups, this is a data structure designed to fan out messages to multiple consumers and there is a [good but lengthy introduction to Redis streams on the Redis website](https://redis.io/topics/streams-intro), but roughly speaking there are three classes of operation:
+Redis is an in-memory database and Akka streams is a popular reactive streams implementation for Scala. In this post we explore a simple end-to-end toy example to demonstrate using Redis streams in Akka streams via the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core).
 
-* **Adding messages to the stream** using the [XADD](https://redis.io/commands/xadd) operation; each message has a unique ID, which is usually generated automatically by the Redis server and returned to the caller.
-* **Reading messages from the stream** using [XREAD](https://redis.io/commands/xread) and [XREADGROUP](https://redis.io/commands/xreadgroup) operations. There are various modes here, from just reading a given message by ID, to reading message using consumer groups.
-* **Dealing with consumer groups, consumers, and acknowledging messages** using operations like [XACK](https://redis.io/commands/xack), [XGROUP](https://redis.io/commands/xgroup), and [XPENDING](https://redis.io/commands/xgroup).
+The Redis streams data structure implements a persistent log with support for consumer groups, and is designed to fan out messages to multiple consumers. There is a [good but lengthy introduction to Redis streams on the Redis website](https://redis.io/topics/streams-intro) though roughly speaking there are three key operations:
 
-In essence consumer groups allow fanning out messages to multiple consumers with guarantees around delivery, and the ability to inspect messages that were consumed but not acknowledged by consumers - properties that are essential for building reliable systems. To explore the Redis streams API we will create a simple app which will produce, consume and then acknowledge messages, a rough outline is the following:
+* **Adding messages to the stream** using the [XADD](https://redis.io/commands/xadd) operation. Each message has a unique ID, which is usually generated automatically by the Redis server and returned to the caller.
+* **Reading messages from the stream** using [XREAD](https://redis.io/commands/xread) and [XREADGROUP](https://redis.io/commands/xreadgroup) operations. There are various modes, from just reading a given message by ID, to reading message using consumer groups.
+* **Dealing with consumer groups, consumers, and acknowledging messages** using operations like [XACK](https://redis.io/commands/xack), [XGROUP](https://redis.io/commands/xgroup), and [XPENDING](https://redis.io/commands/xgroup). Consumer groups ensure guarantees around delivery, for example the ability to inspect messages that were consumed but not acknowledged by consumers - properties that are essential for building reliable systems. 
+  
+Let's start with a rough outline of our simple app:
 
 {{<center>}}
 {{<mermaid>}}
