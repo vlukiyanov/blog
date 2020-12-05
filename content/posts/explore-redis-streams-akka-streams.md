@@ -176,4 +176,4 @@ Running this code we eventually see that all the message have been acknowledged,
 4) (nil)
 ```
 
-The above means that our code was successful, and we have the example app. This can be used as a springboard for exploring other features in Redis streams, and possibly applications for this in-memory log data structure (though note Lettuce's [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) - this will be more suitable for production).
+The above means our code was successful - we have the example app. This can be used as a springboard for exploring other features in Redis streams, and possibly applications for this in-memory log data structure (though note Lettuce's [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) - this will be more suitable for production).
