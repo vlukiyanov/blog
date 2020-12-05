@@ -9,7 +9,7 @@ tags = [
 ]
 +++
 
-Redis is an in-memory database and Akka streams is a popular reactive streams implementation for Scala. In this post we explore a simple end-to-end toy example to demonstrate using Redis streams in Akka streams via the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core). The repo [vlukiyanov/akka-redis-streams-example](https://github.com/vlukiyanov/akka-redis-streams-example) contains the code for the example references below.
+Redis is an in-memory database and Akka streams is a popular reactive streams implementation for Scala. In this post we explore a simple end-to-end toy example to demonstrate using Redis streams in Akka streams via the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core). The repo [vlukiyanov/akka-redis-streams-example](https://github.com/vlukiyanov/akka-redis-streams-example) contains the complete code for the examples below.
 
 The Redis streams data structure implements a persistent log with support for consumer groups, and is designed to fan out messages to multiple consumers. There is a [good but lengthy introduction to Redis streams on the Redis website](https://redis.io/topics/streams-intro) though roughly speaking there are three key operations:
 
