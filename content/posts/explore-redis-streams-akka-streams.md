@@ -9,7 +9,7 @@ tags = [
 ]
 +++
 
-Redis is an in-memory database and Akka streams is a popular reactive streams implementation for Scala. In this post we explore a simple end-to-end toy example to demonstrate using Redis streams in Akka streams via the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core).
+Redis is an in-memory database and Akka streams is a popular reactive streams implementation for Scala. In this post we explore a simple end-to-end toy example to demonstrate using Redis streams in Akka streams via the popular Java library [Lettuce](https://github.com/lettuce-io/lettuce-core). The repo [vlukiyanov/akka-redis-streams-example](https://github.com/vlukiyanov/akka-redis-streams-example) contains the code for the example references below.
 
 The Redis streams data structure implements a persistent log with support for consumer groups, and is designed to fan out messages to multiple consumers. There is a [good but lengthy introduction to Redis streams on the Redis website](https://redis.io/topics/streams-intro) though roughly speaking there are three key operations:
 
@@ -33,19 +33,15 @@ graph LR;
 {{< /mermaid >}}
 {{</center>}}
 
-We will optimise this app for throughput to imitate multiple simultaneous consumers and producers, in particular using parallelism with `.mapAsync(4)` to saturate Redis. Note that the optimisations are unlikely to transfer equally to all environments, this is simply to optimise throughput in a single app.
-
-Using Redis streams with Akka streams is possible using one of the Redis client libraries for Java in Scala, in particular [Redisson](https://github.com/redisson/redisson) and [Lettuce](https://github.com/lettuce-io/lettuce-core); in the following examples we use the simple async version of the latter. Note that Lettuce also has a [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) using [Project Reactor](http://projectreactor.io/), this interface can be used within Akka Streams via the [reactive streams interop](https://doc.akka.io/docs/akka/current/stream/reactive-streams-interop.html) and might be suitable for a number of actual production applications and environments.
+We will optimise this app for throughput. To do this we imitate multiple simultaneous consumers and producers, in particular using parallelism with `.mapAsync(4)` to saturate Redis. These optimisations are unlikely to be relevant in production. For production, for example for Akka HTTP projects, note that Lettuce also has a [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) using [Project Reactor](http://projectreactor.io/). This interface can be used within Akka Streams via the [reactive streams interop](https://doc.akka.io/docs/akka/current/stream/reactive-streams-interop.html).
 
 # Setting up
 
-To experiment with Redis streams we need a local server, using Docker some variation of `docker run --name redis-local -p 6379:6379 -d redis` will setup a local server on port `6379`; if you adjust the port number, using say `-p 6380:6379`, you will then need to change the connection string to match (controlled by the environment variable `REDIS_URL`)
-
-The repo [vlukiyanov/akka-redis-streams-example](https://github.com/vlukiyanov/akka-redis-streams-example) contains full examples of a producer and a consumer.
+To start with we need a local Redis server. The easiest way is using Docker, where some variation of `docker run --name redis-local -p 6379:6379 -d redis` will start a local server on port `6379`; to change the port number to e.g. `6380` use `-p 6380:6379`.
 
 # Producing messages
 
-The producer publishes a `Map[String, String]` to a given stream using the [XADD](https://redis.io/commands/xadd) operation, this will then add the input to the stream with an ID based on the timestamp, which is then returned; the process can be modelled as a `Flow[Map[String, String], String, NotUsed]`. A simple implementation using Lettuce's `XACK` could be roughly the following:
+To producer will take messages we have defined locally in our code and publish them to Redis streams. Each instantiation publishes a `Map[String, String]` to a given stream using the [XADD](https://redis.io/commands/xadd) operation. This will then add the input to the stream with an ID based on the timestamp, which is then returned; the process can be modelled as a `Flow[Map[String, String], String, NotUsed]`. A simple implementation:
 
 ```scala
 object RedisStreamsFlow {
@@ -58,7 +54,7 @@ object RedisStreamsFlow {
 }
 ```
 
-This is simple but not always performant, a more performant version can be implemented using pipelining. To do this compress the `Flow` using the `groupedWithin` method, then send the groups in `Seq[Map[String, String]]` chunks to create `Seq[String]` and finally apply `.mapConcat(identity)` to flatten the results into instances of `String`.
+This is simple but not always performant, a more performant version can be implemented using pipelining. To do this compress the `Flow` using the `groupedWithin` method, send the groups in `Seq[Map[String, String]]` chunks, creating `Seq[String]`, and finally apply `.mapConcat(identity)` to flatten the results into instances of `String`.
 
 ```scala
 object RedisStreamsFlow {
@@ -81,13 +77,13 @@ object RedisStreamsFlow {
 }
 ```
 
-In the above `redis.setAutoFlushCommands(false)` disables Lettuce's automatic flushing, as discussed in [Lettuce documentation](https://lettuce.io/core/release/reference/#_pipelining_and_command_flushing), and instead pipelines the commands manually. This periodically invokes writing to the transport layer using `redis.flushCommands()` after many commands have been added - increasing throughput. 
+In the above `redis.setAutoFlushCommands(false)` disables Lettuce's automatic flushing, as discussed in [Lettuce documentation](https://lettuce.io/core/release/reference/#_pipelining_and_command_flushing), and instead pipelines the commands manually. Periodically `redis.flushCommands()` invokes writing to the transport after many commands have been added - increasing throughput. 
 
-The code for this is in [`RedisStreamsFlow.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsFlow.scala) and [`ProducerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ProducerExample.scala).
+The complete code for this is in [`RedisStreamsFlow.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsFlow.scala) and [`ProducerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ProducerExample.scala).
 
 # Consuming messages
 
-There are many ways to consume messages using Redis streams, to make the most of the capabilities that stream offers we need to use consumer groups as discussed in the [introduction on the Redis website](https://redis.io/topics/streams-intro). Lettuce's [XREADGROUP](https://redis.io/commands/xreadgroup) implementation takes a consumer group, consumer name, an offset configuration for the reading the stream and returns a  list of `io.lettuce.core.StreamMessage`; a `StreamMessage` stores a string `id` and a `Map[String, String]` representing the `body` of the message consumed. We can model the consumer as a `Source[StreamMessage[String, String], Cancellable]`. An implementation is something like the following:
+There are many ways to consume messages using Redis streams. To make the most of the capabilities that stream offers we need to use consumer groups. Consumer groups are discussed in the [introduction on the Redis website](https://redis.io/topics/streams-intro). Lettuce's [XREADGROUP](https://redis.io/commands/xreadgroup) implementation takes a consumer group, consumer name, an offset configuration for the reading the stream, and returns a list of `io.lettuce.core.StreamMessage`; a `StreamMessage` stores a string `id` and a `Map[String, String]` representing the `body` of the message consumed. We can model the consumer as a `Source[StreamMessage[String, String], Cancellable]`. An simple implementation:
 
 ```scala
 object RedisStreamsSource {
@@ -112,11 +108,11 @@ object RedisStreamsSource {
 }
 ```
 
-The parameters here need tuning, but this will poll Redis at some fixed interval, then flatten the lists of messages using `.mapConcat(_.asScala.toList)`. The code for this is in [`RedisStreamsSource.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsSource.scala) and [`ConsumerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ConsumerExample.scala).
+This will poll Redis at some fixed interval, then flatten the lists of messages using `.mapConcat(_.asScala.toList)`. The complete code for this is in [`RedisStreamsSource.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/api/RedisStreamsSource.scala) and [`ConsumerExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/ConsumerExample.scala).
 
 # Acknowledging messages
 
-When a consumer in a consumer group has successfully processed a message it should indicate this by sending an [XACK](https://redis.io/commands/xack); sending [XACK](https://redis.io/commands/xack) removes the message from the pending list. As a message is uniquely determined by a string id this process can be modelled as `Sink[String, NotUsed]`. An implementation is something like the following:
+When a consumer in a consumer group has successfully processed a message it should indicate this by sending an [XACK](https://redis.io/commands/xack); sending [XACK](https://redis.io/commands/xack) removes the message from the pending list. As a message is uniquely determined by a string id this process can be modelled as a `Sink[String, NotUsed]`. A simple implementation:
 
 ```scala
 object RedisStreamsAckSink {
@@ -135,7 +131,7 @@ object RedisStreamsAckSink {
 
 # Threading it all together
 
-We're now able to create a full example which simultaneously produces and consumes messages, afterwards acknowledging them. First the producer, this includes a snippet from https://stackoverflow.com/a/49279641 for rate measurement:
+We're now able to create a full example which simultaneously produces and consumes messages, afterwards acknowledging them. Start with the producer, this includes a snippet from https://stackoverflow.com/a/49279641 for rate measurement:
 
 ```scala
 val redisStreamsFlow = RedisStreamsFlow.create(asyncCommands, "testStream")
@@ -152,7 +148,7 @@ messageSource
   .run()
 ```
 
-Then we can take the same stream and consume the produced message, acknowledging them as we go along:
+Next consume the produced messages, acknowledging them as we go along:
 
 ```scala
 val redisStreamsSource = RedisStreamsSource.create(asyncCommands,
@@ -168,7 +164,9 @@ redisStreamsSource
   .run()
 ```
 
-The code for this is in [`AckExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/AckExample.scala), running this code we eventually see that all the message have been acknowledged by running [XPENDING](https://redis.io/commands/xpending):
+Of course a more useful example would actually do something with the messages before acknowledging them. The complete code for this is in [`AckExample.scala`](https://github.com/vlukiyanov/akka-redis-streams-example/blob/main/src/main/scala/example/AckExample.scala).
+
+Running this code we eventually see that all the message have been acknowledged, this can be verified by running [XPENDING](https://redis.io/commands/xpending):
 
 ```
 127.0.0.1:6379> XPENDING testStream testGroup
@@ -178,5 +176,4 @@ The code for this is in [`AckExample.scala`](https://github.com/vlukiyanov/akka-
 4) (nil)
 ```
 
-This means that the code has successfully finished, and we have the example app; hopefully this can be used as a springboard to exploring other features in Redis streams using Akka streams, and possibly applications for this in-memory log data structure.
-
+The above means that our code was successful, and we have the example app. This can be used as a springboard for exploring other features in Redis streams, and possibly applications for this in-memory log data structure (though note Lettuce's [reactive interface](https://github.com/lettuce-io/lettuce-core/wiki/Reactive-API-(5.0)) - this will be more suitable for production).
