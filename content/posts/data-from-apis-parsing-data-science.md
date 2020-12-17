@@ -114,8 +114,7 @@ def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 ```
 
-The first `@retry` above the `@limits` will be passed through first, and this will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second decorator will soak up any other errors. One side effect is the `RateLimitException` will itself be retries up to 3 times. With limits and retries implemented, the extract part of our code should be able to run unsupervised, so we are able to gather the data we need for our analysis.
-https://pydantic-docs.helpmanual.io/
+The first `@retry` decorator above the `@limits` will be passed through the one above. This first `@retry` this will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second `@retry` will soak up any other errors. One side effect is the retrying of the `RateLimitException` will itself be retries up to 3 times. With limits and retries implemented, the extract part of our code should be able to run unsupervised, so we are able to gather the data we need for our analysis.
 
 # Parsing with `pydantic` and loading with `pandas`
 
