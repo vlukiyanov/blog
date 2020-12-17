@@ -268,10 +268,8 @@ sns.set(rc={"figure.figsize": (10, 6)})
 
 from secrets import APP_ID, APP_KEY
 
-
 def get_id_key():
     return {"app_id": APP_ID, "app_key": APP_KEY}
-
 
 @retry(
     wait=wait_exponential(max=60, min=1),
@@ -286,9 +284,7 @@ def get_id_key():
 def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 
-
 API_ENDPOINT = URL("https://api.tfl.gov.uk/")
-
 
 @lru_cache()
 def tube_line_ids() -> List[str]:
@@ -299,12 +295,10 @@ def tube_line_ids() -> List[str]:
         )
     ]
 
-
 class LineStopPointInfo(BaseModel):
     name: str
     distance: confloat(ge=0)  # from the centre of London, (51.509865, -0.118092)
     connections: conint(ge=0)
-
 
 def parse_result(result) -> LineStopPointInfo:
     return LineStopPointInfo(
@@ -320,7 +314,6 @@ def parse_result(result) -> LineStopPointInfo:
         - 1,  # one result is always for the given line
     )
 
-
 def line_stop_points(line_id: str) -> List[LineStopPointInfo]:
     return [
         parse_result(result)
@@ -329,10 +322,8 @@ def line_stop_points(line_id: str) -> List[LineStopPointInfo]:
         )
     ]
 
-
 def line_stop_df(line_id: str) -> pd.DataFrame:
     return pd.DataFrame([item.dict() for item in line_stop_points(line_id)])
-
 
 df = pd.concat([line_stop_df(line) for line in tube_line_ids()]).drop_duplicates("name")
 
