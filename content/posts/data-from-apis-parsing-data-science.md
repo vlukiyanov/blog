@@ -1,11 +1,11 @@
 +++
 author = "Vladimir Lukiyanov"
-title = "Robust API data gathering for data scientists"
+title = "Robust API data gathering in Python for data scientists"
 date = "2020-12-12"
 lastmod = "2020-12-16"
 description = ""
 tags = [
-"python", "tutorial", "advanced", "api", "rest"
+"python", "tutorial", "advanced", "api", "rest", "pydantic", "yarl", "pandas"
 ]
 +++
 
