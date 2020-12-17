@@ -348,6 +348,8 @@ plot = sns.boxenplot(
 plot.figure.savefig("figure.png")
 ```
 
+Alternatively you can view the code as a [Jupyter notebook](https://github.com/vlukiyanov/blog-examples/blob/main/python-api-examples/python_api_examples/request.ipynb).
+
 [^cache]: Given this data is static, we could use the `functools.lru_cache` (or `functools.cache` in Python 3.9) to prevent refetching - further details in the [functools documentation](https://docs.python.org/3/library/functools.html).
 
 [^openapi]: Not that if we were building an SDK for the TfL API or creating a software integration, then the OpenAPI 3 specifications mentioned above can be used to auto-generate classes in our code; you can read about this for for Pydantic, see the [`datamodel-codegen` library](https://pydantic-docs.helpmanual.io/datamodel_code_generator/).
