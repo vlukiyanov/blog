@@ -267,7 +267,7 @@ from yarl import URL
 sns.set_theme(style="whitegrid")
 sns.set(rc={"figure.figsize": (10, 6)})
 
-from python_api_examples.secrets import APP_ID, APP_KEY
+from secrets import APP_ID, APP_KEY
 
 
 def get_id_key():
