@@ -116,11 +116,6 @@ def get_id_key():
     wait=wait_fixed(1),
     stop=stop_after_delay(60),
 )
-@retry(
-    retry=retry_if_exception_type(RateLimitException),
-    wait=wait_fixed(1),
-    stop=stop_after_delay(60),
-)
 @limits(calls=500, period=60)
 def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
