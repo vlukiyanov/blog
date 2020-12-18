@@ -35,7 +35,7 @@ URL('https://api.tfl.gov.uk/Line/victoria/StopPoints')
 URL('https://api.tfl.gov.uk/Line/victoria/StopPoints?app_id=...&app_key=...')
 ```
 
-The [`yarl` documentation](https://yarl.readthedocs.io/en/latest/) is easy to read, and goes through most common operations on URLs. In our running example we can use `yarl` to create a generic function to authenticate our calls to the [TfL API](https://api-portal.tfl.gov.uk/) with the query parameters `app_id` and `app_key` we noted when registering, this can be done at the very end of a request:
+The [`yarl` documentation](https://yarl.readthedocs.io/en/latest/) is easy to read and goes through most common operations on URLs. In our running example we can use `yarl` to create a generic function to authenticate our calls to the [TfL API](https://api-portal.tfl.gov.uk/) with the query parameters `app_id` and `app_key` we noted when registering, this can be done at the very end of a request:
 
 ```python3
 import requests
