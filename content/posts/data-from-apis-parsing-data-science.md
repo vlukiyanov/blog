@@ -275,7 +275,7 @@ From this we can generate a box plot which shows the distribution of tube statio
 ![Graph showing distribution of distance by number of connections](/data-from-apis-parsing-data-science-1.png#center)
 {{% /center %}}
 
-The two outliers are Baker Street (5 lines so 4 cconnections) and King's Cross St Pancras (6 lines so 5 connections).
+The two outliers are Baker Street (5 lines so 4 connections) and King's Cross St Pancras (6 lines so 5 connections).
 
 Here is the final code for our pipeline.
 
