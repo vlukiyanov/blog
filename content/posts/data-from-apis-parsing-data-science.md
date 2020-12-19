@@ -9,7 +9,7 @@ tags = [
 ]
 +++
 
-There are a plenty of tutorials and guides on gathering data from REST APIs using Python, especially for data scientists; the aim of this tutorial is to present some ideas, components, and recipes which tackle issues a data scientist may find extending their code to run in a more robust setting. Using these techniques, data science code can be a little closer to data engineering.
+There are a plenty of tutorials and guides on gathering data from REST APIs using Python, especially for data scientists; the aim of this tutorial is to present some ideas, components, and recipes which tackle issues a data scientist may find extending their code to run in a more robust setting. Using these techniques, data science code can be a little closer to data engineering[^dataeng].
 
 Techniques aside, using HTTP APIs usually involves navigating incoherent documentation, a small myriad of standards (most of which aren't followed), and often struggling with existing SDKs. The advantage of HTTP based APIs is it is easy to write your own code to pull in the data, and with the right Python practices easy to solidify it.
 
@@ -365,6 +365,8 @@ plot.figure.savefig("figure.png")
 ```
 
 Alternatively you can view the code as a [Jupyter notebook](https://github.com/vlukiyanov/blog-examples/blob/main/python-api-examples/python_api_examples/request.ipynb).
+
+[^dataeng]: Throughout this guide we don't mention testing, in particular unit testing. The components discussed simplify testing but this is outside the scope. Perhaps something for another post.
 
 [^cache]: Given this data is static, we could use the `functools.lru_cache` (or `functools.cache` in Python 3.9) to prevent refetching; further details in the [functools documentation](https://docs.python.org/3/library/functools.html).
 
