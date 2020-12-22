@@ -121,7 +121,7 @@ def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 ```
 
-This first `@retry` this will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second `@retry` will soak up `requests` errors; we assume these are disjoint. With limits and retries implemented, the extract part of our code should be able to run unsupervised, so we are able to gather any data we need for our analysis.
+This first `@retry` will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second `@retry` will soak up `requests` errors; we assume these are disjoint. With limits and retries implemented, the extract part of our code should be able to run unsupervised, so we are able to gather any data we need for our analysis.
 
 # Parsing with `pydantic` and loading with `pandas`
 
