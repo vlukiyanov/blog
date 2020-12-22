@@ -187,7 +187,7 @@ class LineStopPointInfo(BaseModel):
     connections: conint(ge=0)
 ```
 
-The fields like `pydantic.conint` and `pydantic.confloat` put tight bounds on the data that this class can store, for example `ge=0` means greater or equal to 0. `pydantic` supports [many of these fields](https://pydantic-docs.helpmanual.io/usage/types/).
+Fields like `pydantic.conint` and `pydantic.confloat` put tight bounds on the data that this class can store, for example `ge=0` means greater or equal to 0. `pydantic` supports [many of these fields](https://pydantic-docs.helpmanual.io/usage/types/).
 
 We can now write parsing to transform a raw JSON into `LineStopPointInfo` and define `line_stop_points` to return a list of `LineStopPointInfo` instead of the raw data:
 
