@@ -366,10 +366,10 @@ plot.figure.savefig("figure.png")
 
 Alternatively you can view the code as a [Jupyter notebook](https://github.com/vlukiyanov/blog-examples/blob/main/python-api-examples/python_api_examples/request.ipynb).
 
-[^dataeng]: Throughout this guide we haven't mention testing, in particular unit testing - a key concept in engineering. The components discussed simplify testing but this is outside the scope; perhaps something for another post.
+[^dataeng]: Throughout this guide we haven't mention testing, in particular unit testing - a key concept in engineering. The components discussed simplify testing but this is outside the scope.
 
-[^cache]: Given this data is static, we could use the `functools.lru_cache` (or `functools.cache` in Python 3.9) to prevent refetching; further details in the [functools documentation](https://docs.python.org/3/library/functools.html).
+[^cache]: We could use the `functools.lru_cache` (or `functools.cache` in Python 3.9) to prevent refetching; further details in the [functools documentation](https://docs.python.org/3/library/functools.html).
 
-[^openapi]: If we were building an SDK for the TfL API or creating a software integration, then the OpenAPI 3 specifications can be used to auto-generate classes in our code. You can read about this for `pydantic` in the [`datamodel-codegen` library](https://pydantic-docs.helpmanual.io/datamodel_code_generator/).
+[^openapi]: If we were building an SDK for the TfL API or creating a software integration, then the OpenAPI 3 specifications can be used to auto-generate classes in our code. See [`datamodel-codegen` library](https://pydantic-docs.helpmanual.io/datamodel_code_generator/) for `pydantic`.
 
-[^pydantic]: [`pydantic`](https://pydantic-docs.helpmanual.io/) has both a memory and processing footprint. This is only important if you are trying to optimise for extremely large datasets. For most applications data readability and correctness will outweigh these considerations. There are other ways to achieve this as part of your data quality pipeline, for example using [greatexpectations](https://greatexpectations.io/).
+[^pydantic]: [`pydantic`](https://pydantic-docs.helpmanual.io/) has both a memory and processing footprint, which could be important when optimising for extremely large datasets. For most applications data readability and correctness will outweigh these considerations. There are other ways to achieve this as part of your data quality pipeline, for example using [greatexpectations](https://greatexpectations.io/).
