@@ -1,5 +1,5 @@
-Software developer focused on data engineering. Code in python and scala. Interested in distributed systems, functional programming and machine learning.
+Software developer focused on data engineering. Code in Python and Scala. Interested in distributed systems, functional programming and machine learning.
 
-Before that I did a [mathematics PhD in algebraic topology](https://www.genealogy.math.ndsu.nodak.edu/id.php?id=203082), and before that an MSc in mathematical logic and the theory of computation; I'm interested in statistics, category theory and the lambda calculus.
+Before that I did a [Mathematics PhD in Algebraic Topology](https://www.genealogy.math.ndsu.nodak.edu/id.php?id=203082) at Loughborough University, and before that an MSc in Mathematical Logic and the Theory of Computation at University of Manchester; I'm interested in statistics, category theory and the lambda calculus.
 
 [LinkedIn](https://www.linkedin.com/in/vladimir-lukiyanov-00a720115/) [GitHub](https://github.com/vlukiyanov)
