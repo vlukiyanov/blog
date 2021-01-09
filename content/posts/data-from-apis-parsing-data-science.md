@@ -11,7 +11,7 @@ tags = [
 
 There are a plenty of tutorials and guides on gathering data from REST APIs using Python, especially for data scientists; the aim of this tutorial is to present some ideas, components, and recipes which tackle issues a data scientist may find extending their code to run in a more robust setting. Using these techniques, data science code can be a little closer to data engineering[^dataeng].
 
-Techniques aside, using HTTP APIs usually involves navigating incoherent documentation, a small myriad of standards (most of which aren't followed), and often struggling with existing SDKs. The advantage of HTTP based APIs is it is easy to write your own code to pull in the data, and with the right Python practices easy to solidify it.
+Techniques aside, using HTTP APIs usually involves navigating incoherent documentation, a small myriad of standards (most of which aren't followed), and often struggling with existing SDKs. The advantage of HTTP based APIs is it is easy to write and solidify your own code to pull in the data.
 
 All the code in this article can be found in the [python-api-examples](https://github.com/vlukiyanov/blog-examples/tree/main/python-api-examples) folder of [vlukiyanov/blog-examples](https://github.com/vlukiyanov/blog-examples) both as a [Jupyter notebook](https://github.com/vlukiyanov/blog-examples/blob/main/python-api-examples/python_api_examples/request.ipynb) and an equivalent [Python file](https://github.com/vlukiyanov/blog-examples/blob/main/python-api-examples/python_api_examples/request.py).
 
@@ -66,9 +66,9 @@ The above function will return the ids of all TfL tube lines which we will use l
 
 # Managing API quotas with `ratelimit`
 
-The next stage in improving `call_get` is to make sure it can operate within rate limits; basic access to the [TfL API](https://api-portal.tfl.gov.uk/) is limited to 500 requests per minute. Most APIs have rate limits or quotas to protect their backends from excessive load. These limits are often phrased as a combination of the number of requests in a given time period (e.g. 500 per minute), and the concurrency of your requests (e.g. no more than two requests at any time). When gathering data without concurrency, as is the case with any standard Python code, only the "500 per minute" type of limit is important. This is where the [`ratelimit`](https://pypi.org/project/ratelimit/) library can help.
+The next stage in improving `call_get` is to make sure it can operate within rate limits; basic access to the [TfL API](https://api-portal.tfl.gov.uk/) is limited to 500 requests per minute. Most APIs have rate limits or quotas to protect their backends from excessive load. These limits are often phrased as a combination of the number of requests in a given time period (e.g. 500 per minute), and the concurrency of your requests (e.g. no more than two requests at any time). When gathering data without concurrency, as is the case with any standard single-threaded Python code, only the "500 per minute" type of limit is important. This is where the [`ratelimit`](https://pypi.org/project/ratelimit/) library can help.
 
-The `ratelimit` functionality is implemented as a [decorator](https://realpython.com/primer-on-python-decorators/), an advanced Python language feature which modifies the behaviour of a function. For example, to limit our `call_get` function to a maximum of 500 calls every minute, we write:
+The `ratelimit` functionality is implemented as a [decorator](https://realpython.com/primer-on-python-decorators/). A decorator is an advanced Python language feature which modifies the behaviour of a function. Using the `ratelimit` decorator is not difficult. For example, to limit our `call_get` function to a maximum of 500 calls every minute, we write:
 
 ```python3
 import requests
@@ -83,19 +83,19 @@ def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 ```
 
-This means that when our code calls `call_get` with some input, this call is routed through the `@limits(calls=500, period=60)` decorator, which applies the rate limit logic before calling the body of `call_get`, keeping a counter of calls; if we call `call_get` more than 500 times in a one-minute interval then an exception `ratelimit.RateLimitException` will be raised.
+This means that when our code calls `call_get` with some input, this call is routed through the `@limits(calls=500, period=60)` decorator which applies the rate limit logic before calling the body of `call_get`, keeping a counter of calls; if we call `call_get` more than 500 times in a one-minute interval then an exception `ratelimit.RateLimitException` will be raised.
 
 # Handling failures with `tenacity`
 
-Next we improve the way `call_get` handles errors. Calling an external API can result is a number of errors. A lot of these errors aren't handled by the underlying operating system and are passed to you via `requests`, and quite a lot of them are retryable. For `call_get` some examples of errors to retry include: if the server is overloaded and responds with a 5XX response, or if your internet connection is interrupted. In addition to these errors, we also have to handle the `ratelimit.RateLimitException`, which will be raised by the `@limits` decorator if we make requests too quickly.
+Next we improve the way `call_get` handles errors. Calling an external API can result is a number of errors. A lot of these errors aren't handled by the underlying operating system and are passed to you via `requests`, and quite a lot of them are retryable. For `call_get` some examples of errors to retry include: if the server is overloaded and responds with a 5XX response, or if your internet connection is interrupted. In addition to these errors we also have to handle the `ratelimit.RateLimitException` which will be raised by the `@limits` decorator if we make requests too quickly.
 
-There are a number of Python libraries to choose from, [`tenacity`](https://github.com/jd/tenacity) is a maintained and modern library. As with `ratelimit` it works using a decorator. The [`tenacity` documentation](https://tenacity.readthedocs.io/en/latest/) is easy to read, though the style of the library means you have to do an 
+There are a number of Python libraries to choose from, [`tenacity`](https://github.com/jd/tenacity) is a maintained and modern library. As with `ratelimit`, the `tenacity` library works using a decorator. The [`tenacity` documentation](https://tenacity.readthedocs.io/en/latest/) is easy to read, though the style of the library means you have to do an 
 
 ```python3
 from tenacity import *
 ```
 
-import to be able to copy and paste from the examples. To handle the `RateLimitException` and general `requests` exceptions we can write something like this.
+import to be able to copy and paste from the examples. To handle the `RateLimitException` and general `requests` exceptions we can write something like this:
 
 ```python3
 import requests
