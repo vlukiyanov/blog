@@ -20,11 +20,11 @@ All the code in this article can be found in the [python-api-examples](https://g
 As a running example we are going to answer a data science question using the [TfL API](https://api-portal.tfl.gov.uk/) - we'll analyse the number of connections between tube lines by their distance from the centre of London. 
 
 To gain access to the [TfL API](https://api-portal.tfl.gov.uk/) you will need to register for an application key on the TfL link, this consists of an `app_id` and `app_key`. It is worth noting that the [TfL API](https://api-portal.tfl.gov.uk/) response types 
-are documented using OpenAPI 3 specifications - a relatively rare but helpful observation which in we ignore[^openapi]. The aim here is to describe a set of general methods, rather than focusing on the [TfL API](https://api-portal.tfl.gov.uk/), or methods of writing API SDKs.
+are documented using OpenAPI 3 - a relatively rare but helpful observation which in we ignore[^openapi]. The aim here is to describe a set of general methods, rather than focusing on the [TfL API](https://api-portal.tfl.gov.uk/) or methods of writing API SDKs.
 
 # URL structures with `yarl`
 
-Manipulating URLs is a common operation when dealing with HTTP APIs. The two most common operations are adding paths to an endpoint and updating query parameters. Whilst you can do this using pure strings, [urllib](https://docs.python.org/3/library/urllib.request.html#urllib-examples), or [requests itself](https://requests.readthedocs.io/en/master/user/quickstart/#passing-parameters-in-urls), this can become unwieldy and prone to error; this is especially true when you are building up the URL iteratively. Using [yarl](https://github.com/aio-libs/yarl) can often improve this:
+Manipulating URLs is a common operation when dealing with HTTP APIs. The two most common operations are adding paths to an endpoint and updating query parameters. Whilst you can do this using pure strings, [urllib](https://docs.python.org/3/library/urllib.request.html#urllib-examples), or [requests itself](https://requests.readthedocs.io/en/master/user/quickstart/#passing-parameters-in-urls), this can become unwieldy and prone to error; this is especially true when you are building up the URL iteratively. Using [yarl](https://github.com/aio-libs/yarl) can improve this:
 
 ```python3
 >>> from yarl import URL
@@ -35,7 +35,7 @@ URL('https://api.tfl.gov.uk/Line/victoria/StopPoints')
 URL('https://api.tfl.gov.uk/Line/victoria/StopPoints?app_id=...&app_key=...')
 ```
 
-The [`yarl` documentation](https://yarl.readthedocs.io/en/latest/) is easy to read and goes through most common operations on URLs. In our running example we can use `yarl` to create a generic function to authenticate our calls to the [TfL API](https://api-portal.tfl.gov.uk/) with the query parameters `app_id` and `app_key`, which we noted earling, this can be done at the very end of a request:
+The [`yarl` documentation](https://yarl.readthedocs.io/en/latest/) is easy to read and goes through the most common operations on URLs. In our running example we can use `yarl` to create a generic function to authenticate our calls to the [TfL API](https://api-portal.tfl.gov.uk/) with the query parameters `app_id` and `app_key`, which we noted earlier, this can be done at the very end of a request:
 
 ```python3
 import requests
@@ -68,7 +68,7 @@ The above function will return the ids of all TfL tube lines which we will use l
 
 The next stage in improving `call_get` is to make sure it can operate within rate limits; basic access to the [TfL API](https://api-portal.tfl.gov.uk/) is limited to 500 requests per minute. Most APIs have rate limits or quotas to protect their backends from excessive load. These limits are often phrased as a combination of the number of requests in a given time period (e.g. 500 per minute), and the concurrency of your requests (e.g. no more than two requests at any time). When gathering data without concurrency, as is the case with any standard single-threaded Python code, only the "500 per minute" type of limit is important. This is where the [`ratelimit`](https://pypi.org/project/ratelimit/) library can help.
 
-The `ratelimit` functionality is implemented as a [decorator](https://realpython.com/primer-on-python-decorators/). A decorator is an advanced Python language feature which modifies the behaviour of a function. Using the `ratelimit` decorator is not difficult. For example, to limit our `call_get` function to a maximum of 500 calls every minute, we write:
+The `ratelimit` functionality is implemented as a [decorator](https://realpython.com/primer-on-python-decorators/). A decorator is an advanced Python language feature which modifies the behaviour of a function. Using the `ratelimit` decorator is not difficult, for example to limit our `call_get` function to a maximum of 500 calls every minute, we write:
 
 ```python3
 import requests
@@ -83,7 +83,7 @@ def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 ```
 
-This means that when our code calls `call_get` with some input, this call is routed through the `@limits(calls=500, period=60)` decorator which applies the rate limit logic before calling the body of `call_get`, keeping a counter of calls; if we call `call_get` more than 500 times in a one-minute interval then an exception `ratelimit.RateLimitException` will be raised.
+This means that when our code calls `call_get` with some input, this call is routed through the `@limits(calls=500, period=60)` decorator which applies the rate limit logic, before calling the body of `call_get`, keeping a counter of calls; if we call `call_get` more than 500 times in a one-minute interval then an exception `ratelimit.RateLimitException` will be raised.
 
 # Handling failures with `tenacity`
 
@@ -121,7 +121,7 @@ def call_get(url: URL) -> str:
     return requests.get(url.update_query(get_id_key())).text
 ```
 
-This first `@retry` will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second `@retry` will soak up `requests` errors; we assume these are disjoint. With limits and retries implemented, the extract part of our code should be able to run unsupervised, so we are able to gather any data we need for our analysis.
+This first `@retry` will catch the `RateLimitException` and retry every second for a maximum of 60 seconds, the second `@retry` will soak up `requests` errors; we assume these are disjoint. With limits and retries implemented, this part of our code should be able to run unsupervised, so we are able to gather any data we need for our analysis.
 
 # Parsing with `pydantic` and loading with `pandas`
 
@@ -134,7 +134,7 @@ def line_stop_points(line_id: str):
     return json.loads(call_get(API_ENDPOINT / "Line" / line_id / "StopPoints"))
 ```
 
-then calling this as `line_stop_points("victoria")` we get a list of dictionaries of deeply nested data, for example the first dictionary looks like (with some nesting elided):
+then calling `line_stop_points("victoria")` we get a list of dictionaries of deeply nested data, for example the first dictionary looks like (with some nesting elided):
 
 ```python3
 {
@@ -172,7 +172,7 @@ then calling this as `line_stop_points("victoria")` we get a list of dictionarie
 }
 ```
 
-For our analysis we want to transform the data as:
+For our analysis we want to transform this data as:
 
 * Name of the station, as `name`
 * Distance from centre of London, as `distance`
@@ -187,7 +187,7 @@ class LineStopPointInfo(BaseModel):
     connections: conint(ge=0)
 ```
 
-Fields like `pydantic.conint` and `pydantic.confloat` put tight bounds on the data that this class can store, for example `ge=0` means greater or equal to 0. `pydantic` supports [many of these fields](https://pydantic-docs.helpmanual.io/usage/types/).
+Fields like `pydantic.conint` and `pydantic.confloat` put bounds on the data that this class can store, for example `ge=0` means greater or equal to 0. `pydantic` supports [many of these fields](https://pydantic-docs.helpmanual.io/usage/types/) and additional custom checks.
 
 We can now write parsing to transform a raw JSON into `LineStopPointInfo` and define `line_stop_points` to return a list of `LineStopPointInfo` instead of the raw data:
 
