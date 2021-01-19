@@ -20,7 +20,7 @@ All the code in this article can be found in the [python-api-examples](https://g
 As a running example we are going to answer a data science question using the [TfL API](https://api-portal.tfl.gov.uk/) - we'll analyse the number of connections between tube lines by their distance from the centre of London. 
 
 To gain access to the [TfL API](https://api-portal.tfl.gov.uk/) you will need to register for an application key on the TfL link, this consists of an `app_id` and `app_key`. It is worth noting that the [TfL API](https://api-portal.tfl.gov.uk/) response types 
-are documented using OpenAPI 3 - a relatively rare but helpful observation which in we ignore[^openapi]. The aim here is to describe a set of general methods, rather than focusing on the [TfL API](https://api-portal.tfl.gov.uk/) or methods of writing API SDKs.
+are documented using OpenAPI 3 - a relatively rare but helpful observation which we ignore[^openapi]. The aim here is to describe a set of general methods, rather than focusing on the [TfL API](https://api-portal.tfl.gov.uk/) or methods of writing API SDKs.
 
 # URL structures with `yarl`
 
