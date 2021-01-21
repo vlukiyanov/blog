@@ -101,6 +101,100 @@ StopIteration                             Traceback (most recent call last)
 StopIteration:  
 ```
 
-Calling `next` on an iterator either yields a single element or raises `StopIteration`, though it is rare to use this method directly.
+Calling `next` on an iterator either yields a single element or raises `StopIteration`, though it is rare to use this method directly. In the above example `i` contains results, so calling `next` yields a single result, while `j` contains no results so a `StopIteration` error is raised. These are all the operations on an iterator, the interface is quite simple, and results are evaluated lazily - no more data than needed is fetched. In the case where you ever need to evaluate an iterator non-lazily, just call `list(iterator)`, which will consume the whole iterator:
+
+```python
+In [1]: x = range(3)  # range implements the Iterator interface
+
+In [2]: list(x)
+Out[2]: [0, 1, 2]
+```
+
+# Operations on iterators - `itertools`
+
+While the iterators interface is simple, there are a surprising number of fundamental operations available in [`itertools`](https://docs.python.org/3/library/itertools.html), which is part of the Python standard library; here are a handful of examples:
+
+* Dropping elements from iterator using [`itertools.islice`](https://docs.python.org/3/library/itertools.html#itertools.islice): 
+  ```python
+  In [1]: import itertools
+
+  In [2]: x = range(3)
+    
+  In [3]: list(itertools.islice(x, 1, 2))
+  Out[3]: [1]
+  ```
+  This operation works from the start of the operator, unlike list slicing you cannot slide from the end.
+* Taking elements from the iterator while a condition is satisfied using [`itertools.takewhile`](https://docs.python.org/3/library/itertools.html#itertools.takewhile): 
+  ```python
+  In [4]: z = range(10)
+
+  In [5]:  list(itertools.takewhile(lambda y: y < 3, z))
+  Out[5]: [0, 1, 2]
+  ```
+  This operation completes the resulting iterator once the condition is satisfied.
+* Filtering elements which satisfy a certain condition using `filter`:
+  ```python
+  In [6]: list(filter(lambda x: x % 2 == 0, range(10)))
+  Out[6]: [0, 2, 4, 6, 8]
+  ```
+* Map and comprehension, which can be used to transform an iterable, probably the most common operation:
+  ```python
+  In [13]: list(map(lambda y: 2 * y, range(3)))
+  Out[13]: [0, 2, 4]
+  
+  In [14]: list((2 * y for y in range(3)))
+  Out[14]: [0, 2, 4]
+
+  In [15]: list((2 * y for y in range(3) if y < 3))
+  Out[15]: [0, 2, 4]
+  ```
+
+In the context of the [Guardian API](https://open-platform.theguardian.com/documentation/) example, we can use the above to take the first 10 posts about Boris Johnson in the Politics section, first we create a wrapper method:
+
+```python
+class SearchResult(BaseModel):
+    id: str
+    type: str
+    sectionId: Optional[str]
+    sectionName: Optional[str]
+    webPublicationDate: datetime
+    webTitle: str
+    webUrl: Optional[pydantic.AnyUrl]
+    apiUrl: Optional[pydantic.AnyUrl]
+    isHosted: Optional[bool]
+    pillarId: Optional[str]
+    pillarName: Optional[str]
+
+
+def iter_search(q: str) -> Iterable[SearchResult]:
+    """
+    Given a search query like "boris OR johnson", as documented on the Guardian
+    API, return an iterable of SearchResult objects; the API documents the
+    results ordered by the publication date.
+
+    :param q: query, for example "boris OR johnson"
+    :return: iterable of SearchResult objects
+    """
+    url = (URL("https://content.guardianapis.com") / "search").with_query({"q": q})
+    return map(SearchResult.parse_obj, iter_call_get(url))
+```
+
+Which we can then compose using `itertools.islice` and a comprehension:
+
+```python
+# Example query, first 10 results in the "Politics" section
+posts = itertools.islice(
+    (
+        item
+        for item in iter_search("boris OR johnson")
+        if item.sectionName == "Politics"
+    ),
+    0,
+    10
+)
+```
+
+# Operations on iterators - `cytoolz`
+
 
 [^pagination]: For the API developer the choice is affected by the implementation of the backend or database; as a user you don't usually get a choice.
