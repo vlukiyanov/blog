@@ -18,6 +18,11 @@ As a running example we're going to use the [Guardian API](https://open-platform
 For calling the API, following a similar scheme as in [my previous post about robust API data gathering](https://vlukiyanov.github.io/robust-api-data-gathering-in-python-for-data-scientists/), we define a generic function to call the [Guardian API](https://open-platform.theguardian.com/documentation/):
 
 ```python
+from typing import Any, Dict
+
+import requests
+from yarl import URL
+
 def call_get(url: URL) -> Dict[str, Any]:
     """
     Given a URL to call the Guardian API, inject the API key, make the call
@@ -51,6 +56,10 @@ for page in range(1, 20 + 1):
 If you wrap this up into a function, you have to decide on what parameters to take, number of pages, perhaps number of final results. But is there a better way? We are using a list to accumulate the values, a list allows us to seek to a particular value, to mutate a particular value, to append, amongst others. Most of these properties are not very useful to the problem at hand, we are unwrapping an unknown number of values - here is where iterators come in. For the [Guardian API](https://open-platform.theguardian.com/documentation/) [search endpoint](https://open-platform.theguardian.com/documentation/search) the following is a possible implementation using a generator expression:
 
 ```python
+from typing import Iterable
+
+from yarl import URL
+
 def iter_call_get(url: URL, page_size: int = 50) -> Iterable[Dict[str, Any]]:
     """
     Given a URL to call the Guardian API, paginate in page size of page_size,
@@ -112,7 +121,7 @@ Out[2]: [0, 1, 2]
 
 # Operations on iterators - `itertools`
 
-While the iterators interface is simple, there are a surprising number of fundamental operations available in [`itertools`](https://docs.python.org/3/library/itertools.html), which is part of the Python standard library; here are a handful of examples:
+While the iterators interface is simple, there are a number of operations available in the standard library and [`itertools`](https://docs.python.org/3/library/itertools.html), which is part of the Python standard library. Here are a handful of examples:
 
 * Dropping elements from iterator using [`itertools.islice`](https://docs.python.org/3/library/itertools.html#itertools.islice): 
   ```python
@@ -123,35 +132,37 @@ While the iterators interface is simple, there are a surprising number of fundam
   In [3]: list(itertools.islice(x, 1, 2))
   Out[3]: [1]
   ```
-  This operation works from the start of the operator, unlike list slicing you cannot slide from the end.
-* Taking elements from the iterator while a condition is satisfied using [`itertools.takewhile`](https://docs.python.org/3/library/itertools.html#itertools.takewhile): 
+  This operation works from the start of the iterator. Unlike list slicing you cannot slice from the end.
+* Taking elements from the iterator until a condition is no longer satisfied using [`itertools.takewhile`](https://docs.python.org/3/library/itertools.html#itertools.takewhile): 
   ```python
   In [4]: z = range(10)
 
   In [5]:  list(itertools.takewhile(lambda y: y < 3, z))
   Out[5]: [0, 1, 2]
   ```
-  This operation completes the resulting iterator once the condition is satisfied.
-* Filtering elements which satisfy a certain condition using `filter`:
+  In essence this operation completes the resulting iterator once the condition is no longer satisfied.
+* Filtering an iterator to only elements which satisfy a certain condition using `filter`:
   ```python
   In [6]: list(filter(lambda x: x % 2 == 0, range(10)))
   Out[6]: [0, 2, 4, 6, 8]
   ```
-* Map and comprehension, which can be used to transform an iterable, probably the most common operation:
+* Map and for comprehension to transform an iterable, probably the most common operation:
   ```python
-  In [13]: list(map(lambda y: 2 * y, range(3)))
-  Out[13]: [0, 2, 4]
+  In [7]: list(map(lambda y: 2 * y, range(3)))
+  Out[7]: [0, 2, 4]
   
-  In [14]: list((2 * y for y in range(3)))
-  Out[14]: [0, 2, 4]
+  In [8]: list((2 * y for y in range(3)))
+  Out[8]: [0, 2, 4]
 
-  In [15]: list((2 * y for y in range(3) if y < 3))
-  Out[15]: [0, 2, 4]
+  In [9]: list((2 * y for y in range(3) if y < 3))
+  Out[9]: [0, 2, 4]
   ```
 
-In the context of the [Guardian API](https://open-platform.theguardian.com/documentation/) example, we can use the above to take the first 10 posts about Boris Johnson in the Politics section, first we create a wrapper method:
+In the context of the [Guardian API](https://open-platform.theguardian.com/documentation/) example, we can combine the above to take the first 10 posts about Boris Johnson in the Politics section. First we create a wrapper method:
 
 ```python
+from pydantic import BaseModel
+
 class SearchResult(BaseModel):
     id: str
     type: str
@@ -165,10 +176,9 @@ class SearchResult(BaseModel):
     pillarId: Optional[str]
     pillarName: Optional[str]
 
-
 def iter_search(q: str) -> Iterable[SearchResult]:
     """
-    Given a search query like "boris OR johnson", as documented on the Guardian
+    Given a search query like "boris OR johnson", as documented in the Guardian
     API, return an iterable of SearchResult objects; the API documents the
     results ordered by the publication date.
 
@@ -179,7 +189,7 @@ def iter_search(q: str) -> Iterable[SearchResult]:
     return map(SearchResult.parse_obj, iter_call_get(url))
 ```
 
-Which we can then compose using `itertools.islice` and a comprehension:
+We can then compose the above using `itertools.islice` and a comprehension:
 
 ```python
 # Example query, first 10 results in the "Politics" section
@@ -194,7 +204,43 @@ posts = itertools.islice(
 )
 ```
 
+This is not dissimilar to operations with Pandas - we apply a filter and then take the head.
+
 # Operations on iterators - `cytoolz`
 
+There are a number of 3rd party Python libraries which provide additional operations on iterators, of which `cytoolz` is a good example. A lot of these libraries imitate some aspects APIs found in Clojure, Scala and other functional languages. Here are a handful of examples:
+
+* Simplified slicing with [`cytoolz.take`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.take), [`cytoolz.first`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.first), [`cytoolz.last`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.last) and [`cytoolz.drop`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.drop):
+  ```python
+  In [1]: import cytoolz
+
+  In [2]: x = range(3)
+
+  In [3]: cytoolz.itertoolz.last(x)
+  Out[3]: 2
+
+  In [4]: cytoolz.itertoolz.first(x)
+  Out[4]: 0
+
+  In [5]: cytoolz.itertoolz.take(2, x)
+  Out[5]: <itertools.islice at 0x7fab844eda10>
+
+  In [6]: list(cytoolz.itertoolz.take(2, x))
+  Out[6]: [0, 1]
+
+  In [7]: list(cytoolz.itertoolz.drop(2, x))
+  Out[7]: [2]
+  ```
+  While these are shorthands for operations that can be implemented relatively easily without 3rd party libraries, they can aid in readability.
+
+* Generating sequences of repeated function applications using [`cytoolz.itertoolz.iterate`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.iterate), where given a function `f` and a starting value `x`, we generate an infinite iterator `x, f(x), f(f(x)), ...`. A simple example is the following:
+  ```python
+  In [8]: list(cytoolz.itertoolz.take(5, cytoolz.itertoolz.iterate(lambda x: x + 1, 0)))
+  Out[8]: [0, 1, 2, 3, 4]
+  ```
+* Grouping into a dictionary with a key function using [`cytoolz.itertoolz.groupby`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.groupby), which should not be confused with the [`itertools.groupby`](https://docs.python.org/3/library/itertools.html#itertools.groupby) [^beware]:
+
+
+[^beware]: [`itertools.groupby`](https://docs.python.org/3/library/itertools.html#itertools.groupby) behaves differently to other standard libraries, e.g. Scala, as well as the SQL GROUP BY - it can still be useful but this is something to be aware of. The [`cytoolz.itertoolz.groupby`](https://toolz.readthedocs.io/en/latest/api.html#toolz.itertoolz.groupby) is more akin to SQL GROUP BY and other standard libraries like Scala.
 
 [^pagination]: For the API developer the choice is affected by the implementation of the backend or database; as a user you don't usually get a choice.
